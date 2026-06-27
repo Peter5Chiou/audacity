@@ -1,34 +1,28 @@
-# Audacity 編譯進度轉移摘要
+# Debugging Summary: Effect Preset Internal Error
 
-## 1. 工作目標
-在 Windows 11 環境下成功編譯並安裝 Audacity 專案。
+## 1. Problem Description
+In non-English locales (e.g., Chinese), selecting certain factory presets for effects like **Reverb**, **Limiter**, and **Compressor** triggered an "Internal Error" (內部錯誤) dialog.
 
-## 2. 目前進度
-- [x] **環境審核**：確認已安裝 Git, CMake, Ninja 以及 MSVC 2022 編譯器。
-- [x] **Qt 安裝**：已安裝 Qt 6.10.3 至 `F:\qt`，並包含必要模組（Qt 5 Compatibility, Network Authorization, Shader Tools, State Machines）。
-- [x] **子模組更新**：已執行 `git submodule update --init --recursive` 完成所有相依元件拉取。
-- [x] **專案配置**：使用 `audacity-release` 預設配置完成 CMake 配置。
+**Root Cause:**
+The `GetFactoryPresets()` method in these effects was returning **translated strings** as the preset identifiers. When the `EffectPresetsProvider::applyPreset` method attempted to look up the selected preset using the provided ID, the lookup failed because it was comparing a translated string (e.g., "現代") against a list that the system expected to contain stable, untranslated IDs (e.g., "Modern"). 
 
-## 3. 目前遇到的困難
-- **編譯報錯**：在編譯 `effects_nyquist_tests` 時出現 `fatal error C1083: Cannot open include file: 'wx/dir.h'`。
-- **原因分析**：雖然 `wx/dir.h` 檔案存在於 `_deps/wxwidgets` 中，但 CMake 在配置測試目標時未正確將其路徑加入編譯器的搜尋路徑中。
+When the factory lookup failed, the system attempted to load the preset as a **user preset**. Since the factory preset ID is not a valid user preset, this second attempt also failed, returning `Err::InternalError`.
 
-## 4. 採取的解決方法
-- **停用單元測試**：由於目標是編譯主程式而非測試集，決定停用所有測試目標以繞過報錯。
-- **清理快取**：刪除 `build/audacity-release/` 下的 `CMakeCache.txt`、`CMakeFiles/`、`build.ninja` 及 `.ninja_deps` 以確保配置完全重新生成。
-- **重新配置**：使用以下參數重新執行 CMake 配置，強制關閉所有測試選項：
-    - `-DMUSE_ENABLE_UNIT_TESTS=OFF`
-    - `-DAU_BUILD_EFFECTS_TESTS=OFF`
-    - `-DAU_BUILD_APPSHELL_TESTS=OFF`
-    - `-DAU_BUILD_PLAYBACK_TESTS=OFF`
-    - `-DAU_BUILD_PROJECT_TESTS=OFF`
-    - `-DAU_BUILD_RECORD_TESTS=OFF`
-    - `-DAU_BUILD_SHARED_TESTS=OFF`
-    - `-DAU_BUILD_TRACKEDIT_TESTS=OFF`
-    - `-DAU_BUILD_UICOMPONENTS_TESTS=OFF`
+## 2. Solution
+The fix involves a two-part approach to decouple the **Internal ID** from the **Display Name**:
 
----
-**後續執行指令：**
-```powershell
-cmd /c "call VScompilerEnv.bat && cmake --build build/audacity-release --parallel 8"
-```
+1.  **Stable IDs**: Update `GetFactoryPresets()` in `ReverbEffect`, `LimiterEffect`, and `CompressorEffect` to return the original, untranslated source strings (msgids) using the `.msgid()` method of `TranslatableString`. This ensures that the ID remains constant across all locales, allowing the lookup to succeed.
+2.  **UI Translation**: Modify `EffectPresetsBarModel::reload` to translate these stable IDs back into the user's language specifically for the `name` field used in the UI, while keeping the `id` field as the stable English string.
+
+## 3. Current Progress
+- [x] **Diagnosis**: Identified the root cause as a mismatch between translated IDs and stable lookup keys.
+- [x] **Fix (Internal Error)**: Modified `ReverbEffect`, `LimiterEffect`, and `CompressorEffect` to return stable IDs. This successfully eliminated the "Internal Error".
+- [ ] **Fix (UI Regression)**: The current state has a regression where preset names in the UI are displayed in English. The next step is to implement the translation logic in `EffectPresetsBarModel::reload` to restore the localized display names.
+
+### Key Files Modified/Analyzed:
+- `src/effects/builtin_collection/reverb/reverbeffect.cpp`
+- `src/effects/builtin_collection/dynamics/limiter/limitereffect.cpp`
+- `src/effects/builtin_collection/dynamics/compressor/compressoreffect.cpp`
+- `src/effects/effects_base/view/effectpresetsbarmodel.cpp`
+- `src/effects/effects_base/internal/effectpresetsprovider.cpp`
+- `au3/libraries/au3-strings/TranslatableString.h`

@@ -3,9 +3,24 @@
 - You CAN and SHOULD use standard Linux/GNU commands directly (such as `find`, `grep`, `cat`, `head`, `tail`, `ls`, `rm`, `cp`, `mv`).
 - ALWAYS prefix your command string with `chcp 65001 >nul &&` to force UTF-8 encoding and prevent Chinese characters from turning into garbled text.
 - Do NOT use heavy `powershell -Command` wrappers unless standard commands or CoreUtils cannot achieve the task.
+- **CRITICAL (xargs Path Backslash Issue):** NEVER use raw `find ... | xargs grep` in Windows `cmd.exe`. Windows paths contain backslashes (`\`), which `xargs` will interpret as escape characters and strip away, resulting in "file not found" errors. Instead, use `find -exec`, `grep -rl`, or `find -print0 | xargs -0`.
 
-[Bad Example]
+[Bad Examples]
+# Bad: Heavy PowerShell wrapper (unnecessary)
 powershell -Command "Get-ChildItem -Path 'build' -Recurse | Where-Object { $_.Name -like '*.exe' }"
 
-[Good Example - Cleaner and Faster]
+# Bad: Fails in Windows because xargs strips path backslashes, making grep look for ".srceffectsmain.h"
+chcp 65001 >nul && find . -name "*.h" | xargs grep -l "using RegistryPaths ="
+
+[Good Examples - Cleaner and Faster]
+# Good: Simple file finding
 chcp 65001 >nul && find build/audacity-release -name "*.exe"
+
+# Good (Alternative 1): Using find -exec to safely handle Windows paths without xargs
+chcp 65001 >nul && find . -name "*.h" -exec grep -l "using RegistryPaths =" {} +
+
+# Good (Alternative 2): Using direct recursive grep which bypasses find entirely
+chcp 65001 >nul && grep -rl --include="*.h" "using RegistryPaths =" .
+
+# Good (Alternative 3): Using -print0 and xargs -0 to disable escape character processing
+chcp 65001 >nul && find . -name "*.h" -print0 | xargs -0 grep -l "using RegistryPaths ="

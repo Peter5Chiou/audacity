@@ -120,12 +120,13 @@ void EffectPresetsBarModel::reload(const EffectId& effectId, const EffectInstanc
     PresetIdList factoryPresets = presetsController()->factoryPresets(effectId);
     for (const PresetId& p : factoryPresets) {
         String name = au3::wxToString(p);
-        m_factoryPresets << name.toQString();
+        QString qname = name.toQString();
+        m_factoryPresets << qname;
         presets << QVariantMap {
-            { "id", name.toQString() },
-            { "name", name.toQString() },
+            { "id", qname },
+            { "name", muse::qtrc("effects", qname.toStdString().c_str()) },
             { "iconCode", 0 } };
-        m_basePresetNames.insert(name.toQString(), name.toQString());
+        m_basePresetNames.insert(qname, muse::qtrc("effects", qname.toStdString().c_str()));
     }
 
     m_allPresets = presets;

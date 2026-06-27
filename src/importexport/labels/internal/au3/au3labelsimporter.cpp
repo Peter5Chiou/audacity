@@ -9,6 +9,8 @@
 
 #include "au3wrap/au3types.h"
 #include "au3wrap/internal/domconverter.h"
+#include "au3wrap/internal/wxtypes_convert.h"
+
 
 #include "labelsutils.h"
 
@@ -22,7 +24,9 @@ muse::Ret Au3LabelsImporter::importData(const muse::io::path_t& filePath)
         return muse::make_ret(muse::Ret::Code::InternalError);
     }
 
-    wxTextFile textFile(wxString(filePath.toStdString()));
+    // Use wxFromStdString to correctly interpret the UTF-8 encoded path as Unicode
+    wxTextFile textFile(wxFromStdString(filePath.toStdString()));
+
 
     if (!textFile.Open()) {
         return muse::make_ret(muse::Ret::Code::InternalError);

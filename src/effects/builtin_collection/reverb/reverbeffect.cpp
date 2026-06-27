@@ -352,7 +352,7 @@ RegistryPaths ReverbEffect::GetFactoryPresets() const
     RegistryPaths names;
 
     for (size_t i = 0; i < WXSIZEOF(FactoryPresets); i++) {
-        names.push_back(FactoryPresets[i].name.translated().toStdString());
+        names.push_back(wxString::FromUTF8(FactoryPresets[i].name.msgid().toUtf8().constData(), FactoryPresets[i].name.msgid().toUtf8().size()));
     }
 
     return names;

@@ -79,7 +79,7 @@ RegistryPaths CompressorEffect::GetFactoryPresets() const
     RegistryPaths paths(presets.size());
     std::transform(
         presets.begin(), presets.end(), paths.begin(), [](const auto& preset) {
-        return RegistryPath { preset.name.translated().toStdString() };
+        return RegistryPath { wxString::FromUTF8(preset.name.msgid().toUtf8().constData(), preset.name.msgid().toUtf8().size()) };
     });
     return paths;
 }

@@ -105,7 +105,8 @@ au::importexport::FileInfo au::importexport::Au3Importer::fileInfo(const muse::i
             continue;
         }
 
-        auto inFile = plugin->Open(filePath.toStdString(), project);
+        // Use wxFromStdString to correctly interpret the UTF-8 encoded path as Unicode
+        auto inFile = plugin->Open(wxFromStdString(filePath.toStdString()), project);
         if ((inFile != NULL) && (inFile->GetStreamCount() > 0)) {
             fileInfo.path = filePath;
             fileInfo.duration = inFile->GetDuration();
@@ -199,7 +200,8 @@ bool au::importexport::Au3Importer::importIntoTrack(const muse::io::path_t& file
 
     {
         ImportProgress importProgressListener(*project);
-        const wxString wxPath = filePath.toString().toUtf8().constData();
+        // wxFromString ensures the UTF-8 encoded path is decoded correctly as Unicode
+        const wxString wxPath = wxFromString(filePath.toString());
         const bool ok = Importer::Get().Import(
             *project,
             wxPath,
