@@ -1,0 +1,11 @@
+# Windows Command Execution Rules (CoreUtils Enhanced)
+- You are running commands inside a Windows `cmd.exe` environment, but Windows CoreUtils is installed.
+- You CAN and SHOULD use standard Linux/GNU commands directly (such as `find`, `grep`, `cat`, `head`, `tail`, `ls`, `rm`, `cp`, `mv`).
+- ALWAYS prefix your command string with `chcp 65001 >nul &&` to force UTF-8 encoding and prevent Chinese characters from turning into garbled text.
+- Do NOT use heavy `powershell -Command` wrappers unless standard commands or CoreUtils cannot achieve the task.
+
+[Bad Example]
+powershell -Command "Get-ChildItem -Path 'build' -Recurse | Where-Object { $_.Name -like '*.exe' }"
+
+[Good Example - Cleaner and Faster]
+chcp 65001 >nul && find build/audacity-release -name "*.exe"
