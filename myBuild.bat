@@ -1,0 +1,1 @@
+cmd /c "VScompilerEnv.bat && cmake --build build/audacity-release --parallel 8"

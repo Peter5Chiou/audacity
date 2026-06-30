@@ -1,3 +1,5 @@
+#define LOG_TAG "Preferences"
+#include "log.h"
 #include "preferencesmodule.h"
 
 #include <QtQml>
@@ -23,8 +25,12 @@ void PreferencesModule::registerUiTypes()
 
 void PreferencesModule::resolveImports()
 {
+    LOGI() << "PreferencesModule::resolveImports() called";
     auto ir = globalIoc()->resolve<muse::interactive::IInteractiveUriRegister>(moduleName());
     if (ir) {
+        LOGI() << "Registering URI audacity://preferences";
         ir->registerQmlUri(muse::Uri("audacity://preferences"), "Audacity.Preferences", "PreferencesDialog");
+    } else {
+        LOGE() << "Failed to resolve IInteractiveUriRegister for " << moduleName();
     }
 }

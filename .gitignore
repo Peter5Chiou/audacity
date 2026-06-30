@@ -283,3 +283,5 @@ _deps/
 /src/app/locale
 /src/app/licenses
 /src/app/workspaces
+*.txt
+transfer.md

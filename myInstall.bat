@@ -1,0 +1,1 @@
+cmake --install build/audacity-release --prefix "F:/Audacity"

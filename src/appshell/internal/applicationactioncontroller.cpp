@@ -350,12 +350,14 @@ void ApplicationActionController::openAskForHelpPage()
 
 void ApplicationActionController::openPreferencesDialog()
 {
+    LOGI() << "ApplicationActionController::openPreferencesDialog() called";
     //! TODO AU4
     // if (multiwindowsProvider()->isPreferencesAlreadyOpened()) {
     //     multiwindowsProvider()->activateWindowWithOpenedPreferences();
     //     return;
     // }
 
+    LOGI() << "Calling interactive()->open(\"audacity://preferences\")";
     interactive()->open("audacity://preferences");
 }
 
