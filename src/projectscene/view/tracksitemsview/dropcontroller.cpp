@@ -1,5 +1,7 @@
 #include "dropcontroller.h"
 
+#include "global/log.h"
+
 using namespace au::projectscene;
 
 namespace {
@@ -24,7 +26,9 @@ void DropController::probeAudioFiles(const QStringList& fileUrls)
     for (const auto& fileUrl : fileUrls) {
         const QUrl url(fileUrl);
         QString local = url.isLocalFile() ? url.toLocalFile() : fileUrl;
-        muse::io::path_t path = muse::io::path_t(local);
+        muse::io::path_t path(local);
+        LOGI() << "[DROP] localFile=" << local
+               << " path.toStdString()=" << QString::fromStdString(path.toStdString());
         if (muse::contains(exts, muse::io::suffix(path))) {
             localPaths.push_back(path);
             m_lastDraggedUrls.push_back(fileUrl);

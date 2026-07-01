@@ -23,6 +23,8 @@
 #include "trackedit/internal/au3/au3trackdata.h"
 
 #include "tempodetection.h"
+#include "global/log.h"
+
 using au::trackedit::ITrackDataPtr;
 using au::trackedit::Au3TrackData;
 using Au3TrackDataPtr = std::shared_ptr<Au3TrackData>;
@@ -218,7 +220,8 @@ bool au::importexport::Au3Importer::importIntoTrack(const muse::io::path_t& file
         }
     } // ImportProgress (and its dialog) destroyed here, before tempo detection
 
-    std::string baseName = filename(filePath, false).toStdString();
+    wxFileName fn(wxFromString(filePath.toString()));
+    std::string baseName = fn.GetName().ToStdString();
     std::vector<ITrackDataPtr> importedData;
     std::vector<WaveTrack*> importedWaveTracks;
     for (auto& holder : tmpTracks) {
